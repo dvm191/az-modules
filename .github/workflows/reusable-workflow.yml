@@ -1,0 +1,235 @@
+name: Reusable Workflow - Generic
+
+on:
+  workflow_call:
+    inputs:        
+      spnClientId:
+        type: string
+        description: 'Service Principle - Client ID'
+        required: true
+      tenantid:
+        type: string
+        description: 'Service Principle - Client ID'
+        default: 1b505df4-2334-4dec-8749-de67dcaf622
+        required: true
+      mainDirectory:
+        type: string
+        description: 'Path to Main Directory TF Code'
+        required: true
+      varFile:
+        type: string
+        description: 'Path to TF VAR file - Deployment Layer'
+      backend:
+        type: string
+        description: 'Path to TF Backend File - Deployment Layer'
+      subscriptionId:
+        type: string
+        description: 'The Subscription to Deploy resources'
+        required: true
+      environment:
+        type: string
+        description: 'The environment that resources are being deployed into e.g. bnt or devbnt'
+        required: true
+      deploymentRepo:
+        type: string
+        description: 'The Repo being checked out and Terraform initilizes without a -var-file instruction'
+      deploymentRepoBranch:
+        type: string
+        description: 'The branch of the deployment repo'
+      deploymentModuleBranch:
+        type: string
+        default: main
+        description: 'The branch of the deployment module repo'
+
+permissions:
+    id-token: write
+    contents: read
+  
+env:
+  ARM_CLIENT_ID: ${{ inputs.spnClientId }}
+  ARM_SUBSCRIPTION_ID: ${{ inputs.subscriptionId }}
+  ARM_TENANT_ID: ${{ inputs.tenantid }}
+  #ARM_USE_OIDC: "true"  
+          
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  Validate:
+    name: 'Validate Inputs'
+    runs-on: "ubuntu-latest" 
+    steps:
+      - name: 'validate environment input regex' # note: the exit function on this bash script doesn't halt the step
+        id: validate_env_type
+        run: |
+          if [[ ${{ inputs.environment }} != *"devbnt"* && ${{ inputs.environment }} != *"bnt"* ]]; then
+            echo "Error: bnt or devbnt values are only accepted!"
+            exit 1
+          else
+            echo "target_env=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+          fi
+
+  TerraformPlan:
+      name: 'Terraform Plan'
+      runs-on: "ubuntu-latest"
+      outputs:
+        artifact-name: ${{ steps.art-name.outputs.artifact_name }}
+        unique-id: ${{ steps.generate.outputs.unique_id }}
+      steps:
+
+        - name: 'Checkout Deployment Repo'
+          uses: actions/checkout@v4
+          with:
+            token: ${{ secrets.CREDENTIALS }}  
+            repository: biontech-qm/${{ inputs.deploymentRepo }}
+            ref: ${{ inputs.deploymentRepoBranch }}
+            path: ${{ inputs.deploymentRepo }}
+            fetch-depth: 0
+
+        - name: 'Checkout Repo - Deployment Modules'
+          uses: actions/checkout@v4
+          with:
+            token: ${{ secrets.CREDENTIALS }}  
+            repository: dvm191/tf
+            ref: ${{ inputs.deploymentModuleBranch }}
+            path: modules
+            fetch-depth: 0
+
+        - name: 'Print Directory'
+          run: pwd && ls -lah && echo ${{ GITHUB.WORKSPACE }}
+
+        - name: 'Azure login'
+          uses: azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2
+          with:
+              client-id: ${{ env.ARM_CLIENT_ID }}
+              tenant-id: ${{ env.ARM_TENANT_ID }}
+              subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
+
+        - name: 'Set Deployment Subscription Context'
+          run: | 
+            export ARM_SUBSCRIPTION_ID=${{ inputs.subscriptionId }}
+            az account set --subscription ${{ inputs.subscriptionId }}
+            az account show
+
+        - name: Store git credentials for service account from repo PAT secret
+          id: git-credentials
+          run: |
+              git config --global url."https://github.com".insteadOf ssh://git@github.com
+              git config --global url."https://github.com/".insteadOf git@github.com:
+              git config --global url."https://".insteadOf git://
+              git config --global credential.helper 'store --file ~/.git-credentials'
+              echo "https://mark-railton_biontech:${{ secrets.CREDENTIALS }}@github.com" > ~/.git-credentials
+
+        - name: 'Terraform Init'
+          run: |
+            # Catch if main and backend sit in the same directory
+            main=${{ inputs.mainDirectory }}
+            backend=${{ inputs.backend }}
+            if [[ ${main%%/*} == ${backend%%/*} ]]; then
+              # if they are in the same directory, use the substring after the last /
+              backendConfig="${backend##*/}"
+              echo "terraform will use backendConfig: $backendConfig"
+              echo ""
+            else
+              backendConfig="../../../../${{ inputs.backend }}"
+              echo "terraform will use backendConfig: $backendConfig"
+              echo ""
+            fi
+
+            cd ${{ inputs.mainDirectory }}
+            if [ -z "${{ inputs.backend }}" ]; then
+              terraform init
+            else
+              terraform init -backend-config=$backendConfig
+            fi
+            
+        - name: 'Terraform Plan'
+          run: |
+            az account set --subscription ${{ inputs.subscriptionId }}
+            az account show
+
+            # Catch if main and var-file sit in the same directory
+            main=${{ inputs.mainDirectory }}
+            varFile=${{ inputs.varFile }}
+            if [[ ${main%%/*} == ${varFile%%/*} ]]; then
+              # if they are in the same directory, use the substring after the last /
+              varFile="${varFile##*/}"
+              echo "terraform will use varFile: $varFile"
+              echo ""
+            else
+              varFile="../../../../${{ inputs.varFile }}"
+              echo "terraform will use varFile: $varFile"
+              echo ""
+            fi  
+
+            cd ${{ inputs.mainDirectory }}
+            if [ -z "${{ inputs.varFile }}" ]; then
+              terraform plan
+            else
+              terraform plan -out="${{ GITHUB.WORKSPACE }}/out_plan_file" -input=false -var-file=$varFile
+            fi
+
+        - name: Generate unique ID
+          id: generate
+          run: |
+            uniqueid=$(uuidgen)
+            shortuniqueid=${uniqueid:0:8}
+            echo "unique_id=${shortuniqueid}" >> $GITHUB_OUTPUT
+
+        - name: Create Artifact Name
+          id: art-name
+          run: |
+            mainDirectory=${{ inputs.mainDirectory }}
+            varFile=${{ inputs.varFile }}
+            artifactName=${mainDirectory##*/}-${varFile##*/}
+            echo "artifact_name=$artifactName" >> $GITHUB_OUTPUT
+
+        - name: Upload Artifacts - Directory
+          uses: actions/upload-artifact@v4
+          with:
+            name: ${{ steps.generate.outputs.unique_id }}-${{ steps.art-name.outputs.artifact_name }}
+            path: ${{ GITHUB.WORKSPACE }}
+            include-hidden-files: true
+
+        - name: Cleanup workspace
+          run: rm -rf ${{ GITHUB.WORKSPACE }}/* -v            
+
+  TerraformApply:
+    needs: TerraformPlan 
+    name: 'Terraform Apply'
+    runs-on: "ubuntu-latest"
+    environment: devbnt-approval
+    steps:
+      - uses: actions/download-artifact@v4
+
+      - name: 'Print Directory'
+        run: pwd && ls -lah && echo ${{ GITHUB.WORKSPACE }}
+
+      - name: 'Azure login'
+        uses: azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2
+        with:
+            client-id: ${{ env.ARM_CLIENT_ID }}
+            tenant-id: ${{ env.ARM_TENANT_ID }}
+            subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
+
+      - name: 'Set Deployment Subscription Context'
+        run: | 
+          az account set --subscription ${{ inputs.subscriptionId }}
+          az account show
+          
+      - name: 'Terraform Apply'
+        run: |
+          az account set --subscription ${{ inputs.subscriptionId }}
+          az account show          
+          cd ${{ GITHUB.WORKSPACE }}/${{ needs.TerraformPlan.outputs.unique-id }}-${{ needs.TerraformPlan.outputs.artifact-name }}/${{ inputs.mainDirectory }}
+          ls -la
+          chmod +x -R .terraform
+          if [ -z "${{ inputs.varFile }}" ]; then
+            terraform apply -auto-approve
+          else
+            terraform apply ${{ GITHUB.WORKSPACE }}/${{ needs.TerraformPlan.outputs.unique-id }}-${{ needs.TerraformPlan.outputs.artifact-name }}/out_plan_file
+          fi
+          
+      - name: Cleanup workspace
+        run: rm -rf ${{ GITHUB.WORKSPACE }}/* -v
