@@ -89,7 +89,7 @@ resource "azurerm_key_vault" "kv" {
   enable_rbac_authorization     = try(local.keyVault.values.enableRbacAuthorization, true)
   enabled_for_disk_encryption   = try(local.keyVault.values.enabledForDiskEncryption, false)
   public_network_access_enabled = try(local.keyVault.values.publicNetworkAccessEnabled, true)
-  purge_protection_enabled      = try(local.keyVault.values.purgeProtectionEnabled, true)
+  purge_protection_enabled      = try(local.keyVault.values.purgeProtectionEnabled, false)
   soft_delete_retention_days    = try(local.keyVault.values.softDeleteRetentionDays, 7)
   sku_name                      = try(local.keyVault.values.skuName, "standard")
   tenant_id                     = data.azurerm_client_config.current.tenant_id
