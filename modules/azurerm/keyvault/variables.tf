@@ -1,0 +1,3 @@
+variable "keyVault" {
+  type = any
+}
