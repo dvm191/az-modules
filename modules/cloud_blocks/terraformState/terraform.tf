@@ -8,5 +8,15 @@ terraform {
       version = ">= 3.46.0"
     }
   }
-  backend "azurerm" {}
+  # backend "azurerm" {}
+}
+
+
+provider "azurerm" {
+  #storage_use_azuread = true
+  features {}
+}
+
+provider "azuread" {
+  #storage_use_azuread = true
 }
