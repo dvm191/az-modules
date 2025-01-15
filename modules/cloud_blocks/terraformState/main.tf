@@ -5,11 +5,11 @@ locals {
 }
 
 ############################ defaultDataSources ##########################################
-data "azurerm_log_analytics_workspace" "management" {
-  provider            = azurerm.management
-  name                = module.tenant.environment[local.environment].management.logAnalyticsWorkspace[local.inputs.region].name
-  resource_group_name = module.tenant.environment[local.environment].management.logAnalyticsWorkspace[local.inputs.region].resourceGroupName
-}
+# data "azurerm_log_analytics_workspace" "management" {
+#   provider            = azurerm.management
+#   name                = module.tenant.environment[local.environment].management.logAnalyticsWorkspace[local.inputs.region].name
+#   resource_group_name = module.tenant.environment[local.environment].management.logAnalyticsWorkspace[local.inputs.region].resourceGroupName
+# }
 
 
 
@@ -29,7 +29,7 @@ module "resource_group" {
       region          = local.inputs.region
       complianceLevel = local.inputs.complianceLevel
       stage           = local.inputs.stage
-      tags            = try(merge(module.tenant.globalTags, try(each.value.tags, {}), try(local.inputs.tags, {})), {})
+      #tags            = try(merge(module.tenant.globalTags, try(each.value.tags, {}), try(local.inputs.tags, {})), {})
     }
   )
 }
@@ -57,8 +57,8 @@ module "storage_account" {
       complianceLevel         = local.inputs.complianceLevel
       stage                   = local.inputs.stage
       resourceGroupName       = module.resource_group[each.value.resourceGroupIndex].resourceGroupName
-      logAnalyticsWorkspaceId = data.azurerm_log_analytics_workspace.management.id
-      tags                    = try(merge(module.tenant.globalTags, try(each.value.tags, {}), try(local.inputs.tags, {})), {})
+      #logAnalyticsWorkspaceId = data.azurerm_log_analytics_workspace.management.id
+      #tags                    = try(merge(module.tenant.globalTags, try(each.value.tags, {}), try(local.inputs.tags, {})), {})
       keyVault                = module.key_vault[each.value.keyVaultIndex]
       privateLinkSubnetId     = try(each.value.privateEndpoint.privateLinkSubnetId, null)
       privateDnsZoneId = {
@@ -83,7 +83,7 @@ resource "azurerm_management_lock" "storage_account" {
 }
 
 module "key_vault" {
-  source   = "../../azurerm/key_vault"
+  source   = "../../azurerm/keyvault"
   for_each = { for s in local.inputs.keyVault : s.index => s }
   keyVault = merge(
     {
@@ -94,8 +94,8 @@ module "key_vault" {
       complianceLevel         = local.inputs.complianceLevel
       stage                   = local.inputs.stage
       resourceGroupName       = module.resource_group[each.value.resourceGroupIndex].resourceGroupName
-      logAnalyticsWorkspaceId = data.azurerm_log_analytics_workspace.management.id
-      tags                    = try(merge(module.tenant.globalTags, try(each.value.tags, {}), try(local.inputs.tags, {})), {})
+      #logAnalyticsWorkspaceId = data.azurerm_log_analytics_workspace.management.id
+      #tags                    = try(merge(module.tenant.globalTags, try(each.value.tags, {}), try(local.inputs.tags, {})), {})
       privateLinkSubnetId     = try(each.value.privateEndpoint.privateLinkSubnetId, null)
       privateDnsZoneId = {
         vault  = try(each.value.privateEndpoint.privateDnsZoneId, null)
