@@ -386,12 +386,12 @@ resource "azurerm_key_vault_key" "customerManagedKey" {
   key_size     = 2048
   key_opts     = ["decrypt", "encrypt", "sign", "unwrapKey", "verify", "wrapKey"]
 }
-resource "azurerm_role_assignment" "customerManagedKeyRbac" {
-  for_each             = toset(try(local.storageAccount.keyVault.enableRbacAuthorization, false) == true ? ["01"] : [])
-  scope                = azurerm_key_vault_key.customerManagedKey[each.key].resource_versionless_id
-  role_definition_name = "Key Vault Crypto Service Encryption User"
-  principal_id         = azurerm_storage_account.sa.identity.0.principal_id
-}
+# resource "azurerm_role_assignment" "customerManagedKeyRbac" {
+#   for_each             = toset(try(local.storageAccount.keyVault.enableRbacAuthorization, false) == true ? ["01"] : [])
+#   scope                = azurerm_key_vault_key.customerManagedKey[each.key].resource_versionless_id
+#   role_definition_name = "Key Vault Crypto Service Encryption User"
+#   principal_id         = azurerm_storage_account.sa.identity.0.principal_id
+# }
 
 resource "azurerm_key_vault_access_policy" "customerManagedKey" {
   for_each     = toset(try(local.storageAccount.keyVault.enableRbacAuthorization, false) == false ? ["01"] : [])
@@ -416,17 +416,17 @@ resource "azurerm_key_vault_access_policy" "customerManagedKey" {
   secret_permissions = ["Get"]
 }
 
-resource "azurerm_storage_account_customer_managed_key" "sa" {
-  for_each           = toset(try(local.storageAccount.values.customerManagedKey, true) == true ? ["01"] : [])
-  storage_account_id = azurerm_storage_account.sa.id
-  key_name           = azurerm_key_vault_key.customerManagedKey[each.key].name
-  key_vault_id       = (
-    try(local.storageAccount.keyVault.enableRbacAuthorization, false) == false ? 
-    azurerm_key_vault_access_policy.customerManagedKey[each.key].key_vault_id : 
-    replace(azurerm_role_assignment.customerManagedKeyRbac[each.key].scope, format("/keys/%s", azurerm_key_vault_key.customerManagedKey[each.key].name), "")
-  )
+# resource "azurerm_storage_account_customer_managed_key" "sa" {
+#   for_each           = toset(try(local.storageAccount.values.customerManagedKey, true) == true ? ["01"] : [])
+#   storage_account_id = azurerm_storage_account.sa.id
+#   key_name           = azurerm_key_vault_key.customerManagedKey[each.key].name
+#   key_vault_id       = (
+#     try(local.storageAccount.keyVault.enableRbacAuthorization, false) == false ? 
+#     azurerm_key_vault_access_policy.customerManagedKey[each.key].key_vault_id : 
+#     replace(azurerm_role_assignment.customerManagedKeyRbac[each.key].scope, format("/keys/%s", azurerm_key_vault_key.customerManagedKey[each.key].name), "")
+#   )
   
-}
+# }
 
 resource "azurerm_storage_share" "share" {
   for_each           = { for x in try(local.storageAccount.values.share, []) : x.name => x }
