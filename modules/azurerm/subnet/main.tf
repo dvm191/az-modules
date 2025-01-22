@@ -167,46 +167,46 @@ resource "azurerm_subnet_route_table_association" "routeTable" {
   route_table_id = local.subnet.routeTableId
 }
 
-resource "azurerm_monitor_diagnostic_setting" "monitorDiagnosticSetting" {
-  name                       = "system"
-  target_resource_id         = azurerm_network_security_group.nsg.id
-  log_analytics_workspace_id = local.subnet.logAnalyticsWorkspace.id
+# resource "azurerm_monitor_diagnostic_setting" "monitorDiagnosticSetting" {
+#   name                       = "system"
+#   target_resource_id         = azurerm_network_security_group.nsg.id
+#   log_analytics_workspace_id = local.subnet.logAnalyticsWorkspace.id
 
-  enabled_log {
-    category = "NetworkSecurityGroupEvent"
-  }
-}
+#   enabled_log {
+#     category = "NetworkSecurityGroupEvent"
+#   }
+# }
 
-resource "azurerm_network_watcher_flow_log" "snet" {
-  for_each                  = toset(try(local.subnet.values.networkWatcherFlowLog, null) != null ? ["01"] : [])
-  name                      = local.networkWatcherFlowLogName
-  network_watcher_name      = local.subnet.values.networkWatcherFlowLog.networkWatcherName
-  resource_group_name       = local.subnet.values.networkWatcherFlowLog.resourceGroupName
-  location                  = local.location
-  network_security_group_id = azurerm_network_security_group.nsg.id
-  storage_account_id        = format("%s%s%s%s%s%s", "/subscriptions/", data.azurerm_subscription.current.subscription_id, "/resourceGroups/", local.subnet.values.networkWatcherFlowLog.resourceGroupName, "/providers/Microsoft.Storage/storageAccounts/", local.subnet.values.networkWatcherFlowLog.storageAccountName) 
-  enabled                   = try(local.subnet.values.networkWatcherFlowLog.enabled, true)
+# resource "azurerm_network_watcher_flow_log" "snet" {
+#   for_each                  = toset(try(local.subnet.values.networkWatcherFlowLog, null) != null ? ["01"] : [])
+#   name                      = local.networkWatcherFlowLogName
+#   network_watcher_name      = local.subnet.values.networkWatcherFlowLog.networkWatcherName
+#   resource_group_name       = local.subnet.values.networkWatcherFlowLog.resourceGroupName
+#   location                  = local.location
+#   network_security_group_id = azurerm_network_security_group.nsg.id
+#   storage_account_id        = format("%s%s%s%s%s%s", "/subscriptions/", data.azurerm_subscription.current.subscription_id, "/resourceGroups/", local.subnet.values.networkWatcherFlowLog.resourceGroupName, "/providers/Microsoft.Storage/storageAccounts/", local.subnet.values.networkWatcherFlowLog.storageAccountName) 
+#   enabled                   = try(local.subnet.values.networkWatcherFlowLog.enabled, true)
 
-  retention_policy {
-    enabled = try(local.subnet.values.networkWatcherFlowLog.retentionPolicy.enabled, true)
-    days    = try(local.subnet.values.networkWatcherFlowLog.retentionPolicy.days, 7)
-  }
+#   retention_policy {
+#     enabled = try(local.subnet.values.networkWatcherFlowLog.retentionPolicy.enabled, true)
+#     days    = try(local.subnet.values.networkWatcherFlowLog.retentionPolicy.days, 7)
+#   }
 
-  traffic_analytics {
-    enabled               = try(local.subnet.values.networkWatcherFlowLog.trafficAnalytics.enabled, true)
-    workspace_id          = local.subnet.logAnalyticsWorkspace.workspace_id
-    workspace_region      = local.subnet.logAnalyticsWorkspace.location
-    workspace_resource_id = local.subnet.logAnalyticsWorkspace.id
-    interval_in_minutes   = try(local.subnet.values.networkWatcherFlowLog.trafficAnalytics.intervalInMinutes, 10)
-  }
-  version = try(local.subnet.values.networkWatcherFlowLog.networkWatcherFlowLog.version, "2")
-  tags    = try(local.subnet.tags, {})
+#   traffic_analytics {
+#     enabled               = try(local.subnet.values.networkWatcherFlowLog.trafficAnalytics.enabled, true)
+#     workspace_id          = local.subnet.logAnalyticsWorkspace.workspace_id
+#     workspace_region      = local.subnet.logAnalyticsWorkspace.location
+#     workspace_resource_id = local.subnet.logAnalyticsWorkspace.id
+#     interval_in_minutes   = try(local.subnet.values.networkWatcherFlowLog.trafficAnalytics.intervalInMinutes, 10)
+#   }
+#   version = try(local.subnet.values.networkWatcherFlowLog.networkWatcherFlowLog.version, "2")
+#   tags    = try(local.subnet.tags, {})
 
-  lifecycle {
-    ignore_changes = [
-      # Ignore changes to tags, e.g. because other services
-      # update these based on some ruleset managed elsewhere.
-      tags,
-    ]
-  }  
-}
+#   lifecycle {
+#     ignore_changes = [
+#       # Ignore changes to tags, e.g. because other services
+#       # update these based on some ruleset managed elsewhere.
+#       tags,
+#     ]
+#   }  
+# }
