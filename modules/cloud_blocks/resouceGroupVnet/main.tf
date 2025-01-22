@@ -57,8 +57,8 @@ module "virtual_network" {
       complianceLevel       = local.inputs.complianceLevel
       stage                 = local.inputs.stage      
       resourceGroupName     = module.resource_group[each.value.resourceGroupIndex].resourceGroupName
-      logAnalyticsWorkspace = data.azurerm_log_analytics_workspace.management
-      tags                  = try(merge(module.tenant.globalTags, try(each.value.tags, {}), try(local.inputs.tags, {})), {})
+      #logAnalyticsWorkspace = data.azurerm_log_analytics_workspace.management
+      tags                  = try(merge(try(each.value.tags, {}), try(local.inputs.tags, {})), {})
     }
   )
 }
@@ -76,7 +76,7 @@ module "subnet" {
       stage                 = local.inputs.stage
       tags                  = try(merge(try(each.value.tags, {}), try(local.inputs.tags, {})), {})
       virtualNetwork        = module.virtual_network[each.value.virtualNetworkIndex]      
-      logAnalyticsWorkspace = data.azurerm_log_analytics_workspace.management
+      #logAnalyticsWorkspace = data.azurerm_log_analytics_workspace.management
     }
   )
 }

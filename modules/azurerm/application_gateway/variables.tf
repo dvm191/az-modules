@@ -1,0 +1,3 @@
+variable "virtualNetwork" {
+  type = any
+}
