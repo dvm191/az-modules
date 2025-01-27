@@ -10,7 +10,7 @@ resource "azurerm_public_ip" "bast" {
   resource_group_name = var.resource_group_name
   location            = var.location
   allocation_method   = "Static"
-  sku                 = "Basic"
+  sku                 = "Standard"
   sku_tier            = "Regional"
 }
 
