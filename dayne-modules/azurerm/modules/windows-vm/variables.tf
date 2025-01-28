@@ -8,6 +8,7 @@ variable "location" {
   type        = string
 }
 
+
 variable "vm_name" {
   description = "The name of the virtual machine"
   type        = string
@@ -34,4 +35,13 @@ variable "os_disk_size_gb" {
   description = "The size of the OS disk in GB"
   type        = number
   default     = 127
+}
+
+variable "ip_configurations" {
+  description = "A list of IP configuration objects with name, subnet_id, and allocation"
+  type = list(object({
+    name                          = string
+    subnet_id                     = string
+    private_ip_address_allocation = string
+  }))
 }

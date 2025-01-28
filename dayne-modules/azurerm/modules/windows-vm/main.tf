@@ -5,7 +5,7 @@ resource "azurerm_network_interface" "nic" {
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.subnet.id
+    subnet_id                     = var.ip_configurations[0].subnet_id
     private_ip_address_allocation = "Dynamic"
   }
 }
@@ -43,18 +43,3 @@ resource "azurerm_virtual_machine" "windows_vm" {
     # enable_automatic_updates  = true
   }
 }
-
-
-# resource "azurerm_virtual_network" "vnet" {
-#   name                = "${var.vm_name}_vnet"
-#   address_space       = var.virtual_network.address_space
-#   location            = var.location
-#   resource_group_name = var.resource_group_name
-# }
-
-# resource "azurerm_subnet" "subnet" {
-#   name                 = "${var.vm_name}_subnet"
-#   resource_group_name  = var.resource_group_name
-#   virtual_network_name = azurerm_virtual_network.vnet.name
-#   address_prefixes     = ["10.0.1.0/24"]
-# }
