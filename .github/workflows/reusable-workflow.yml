@@ -119,7 +119,7 @@ jobs:
               git config --global url."https://github.com/".insteadOf git@github.com:
               git config --global url."https://".insteadOf git://
               git config --global credential.helper 'store --file ~/.git-credentials'
-              echo "https://mark-railton_biontech:${{ secrets.CREDENTIALS }}@github.com" > ~/.git-credentials
+              echo "https://mark-railton:${{ secrets.CREDENTIALS }}@github.com" > ~/.git-credentials
 
         - name: 'Terraform Init'
           run: |
