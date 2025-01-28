@@ -10,7 +10,6 @@ module "resource_group" {
 }
 
 
-
 module "virtual_network" {
   source = "./modules/azurerm/virtual_network"
 
@@ -36,4 +35,15 @@ module "virtual_network" {
       project     = "example"
     }
   }
+}
+
+module "subnet_with_nsg" {
+  source                = "./modules/azurerm/subnet_with_nsg"
+  resource_group_name   = module.resource_group.resource_group_name
+  location              = module.resource_group.location
+  vnet_name             = module.virtual_network.name
+  vnet_address_space    = ["10.101.221.224/28"]
+  subnet_name           = "example-subnet"
+  subnet_address_prefixes = ["10.101.221.224/28"]
+  nsg_name              = "example-nsg"
 }
