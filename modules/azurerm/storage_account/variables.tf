@@ -1,3 +1,0 @@
-variable "storageAccount" {
-  type = any
-}

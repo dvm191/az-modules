@@ -1,3 +1,0 @@
-variable "subnet" {
-  type = any
-}
