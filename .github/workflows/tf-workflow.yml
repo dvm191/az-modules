@@ -1,0 +1,288 @@
+name: CCOE Azure Pipeline - DEVBNT
+
+on:
+  workflow_dispatch:
+      # inputs:        
+      #   environment:
+      #     type: choice
+      #     description: 'Deployment Environment'
+      #     required: true
+
+permissions:
+    id-token: write
+    contents: write
+    pull-requests: write
+  
+env:
+  ARM_CLIENT_ID: ""
+  ARM_SUBSCRIPTION_ID: ""
+  ARM_TENANT_ID: ""
+  #ARM_USE_OIDC: "true"  
+  #repoDirectory: ${{ github.event.inputs.environment }}/${{ github.event.inputs.parentManagementGroup }}/${{ github.event.inputs.childManagementGroup }}/${{ github.event.inputs.subscriptionName }}
+          
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  # subscription-code-creation:
+  #   name: 'Subscription Code'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Setup inputs from json
+  #       id: setup-inputs
+  #       run: echo '${{ github.event.inputs.jsonParameterInputs }}' | jq -r 'to_entries[] | "\(.key)=\(.value)"' | xargs -I '{}' echo "{}" >> "$GITHUB_OUTPUT"
+
+  #     - name: 'Access Internal Repos'
+  #       uses: biontech-qm/bnt-access-internal-repos@v1
+  #       with:
+  #           TOKEN: ${{ secrets.BNT_GH_INTERNAL_REPOS }}  
+    
+  #     - name: Checkout Repo - Deployment
+  #       uses: actions/checkout@v4
+
+  #     - name: Checkout Repo - Template - DEVBNT
+  #       if: ${{ inputs.environment == 'devbnt' }}
+  #       uses: actions/checkout@v4
+  #       with:
+  #         token: ${{ secrets.BNT_GH_INTERNAL_REPOS }}  
+  #         repository: biontech-qm/ccoe-az-template_azure_lz_lvl3_subscription
+  #         ref: main
+  #         path: ${{ env.repoDirectory }}-cc
+
+  #     - name: Git Tracking Clean Up
+  #       run: |
+  #         cd ${{ env.repoDirectory }}-cc
+  #         rm -rf .git
+  #         rm .gitignore
+        
+  #     - name: Creating auto.tfvars environment - DEVBNT
+  #       run: | 
+  #         echo "Setting Terraform auto.tfvars for - ${{ github.event.inputs.environment }}"
+  #         cd ${{ env.repoDirectory }}-cc
+  #         pwd
+  #         rm template.bnt.auto.tfvars
+  #         mv template.devbnt.auto.tfvars ${{ github.event.inputs.subscriptionName }}.${{ github.event.inputs.environment }}.auto.tfvars
+
+  #     - name: Updating auto.tfvars file with input values - devbnt
+  #       run: |
+  #         cd ${{ env.repoDirectory }}-cc
+  #         sed -i 's/"<EMAIL HERE>"/"${{ steps.setup-inputs.outputs.ownerName }}"/g' ${{ github.event.inputs.subscriptionName }}.${{ github.event.inputs.environment }}.auto.tfvars
+  #         sed -i 's/"<COSTCENTER ID HERE>"/"${{ steps.setup-inputs.outputs.costCenter }}"/g' ${{ github.event.inputs.subscriptionName }}.${{ github.event.inputs.environment }}.auto.tfvars
+  #         sed -i 's/"<OWNER BACKUP HERE>"/"${{ steps.setup-inputs.outputs.serviceOwnerBackupName }}"/g' ${{ github.event.inputs.subscriptionName }}.${{ github.event.inputs.environment }}.auto.tfvars
+  #         sed -i 's/"<DEPARTMENT HERE>"/"${{ steps.setup-inputs.outputs.department }}"/g' ${{ github.event.inputs.subscriptionName }}.${{ github.event.inputs.environment }}.auto.tfvars
+  #         sed -i 's/"<SUBSCRIPTION NAME HERE>"/"${{ github.event.inputs.subscriptionName }}-cc"/g' ${{ github.event.inputs.subscriptionName }}.${{ github.event.inputs.environment }}.auto.tfvars
+  #         sed -i 's/"<MANAGEMENT GROUP ID HERE>"/"${{ github.event.inputs.managementGroupId }}"/g' ${{ github.event.inputs.subscriptionName }}.${{ github.event.inputs.environment }}.auto.tfvars
+  #         sed -i 'sz"XX.XX.XX.XX/XX"z"${{ github.event.inputs.vnetCidr }}"zg' ${{ github.event.inputs.subscriptionName }}.${{ github.event.inputs.environment }}.auto.tfvars
+
+  #     - name: Disabled VWAN Route Propagation For Subscription Deploying In Devbnt Only
+  #       run: | 
+  #         cd ${{ env.repoDirectory }}-cc
+  #         sed -i 's/vwan_propagated_routetables_resource_ids/#vwan_propagated_routetables_resource_ids/g' locals.tf
+  #         sed -i 's/vwan_propagated_routetables_labels/#vwan_propagated_routetables_labels/g' locals.tf
+
+  #     - name: Set Terraform Backend Configuration - Key
+  #       run: |
+  #         cd ${{ env.repoDirectory }}-cc
+  #         sed -i 's/<SUBSCRIPTION KEY HERE>/${{ github.event.inputs.subscriptionName }}-cc/g' terraform.tf
+
+  #     - name: ls files and contents of the file(s) - devbnt
+  #       run: |          
+  #         cd ${{ env.repoDirectory }}-cc
+  #         pwd && ls -lah && cat ${{ github.event.inputs.subscriptionName }}.${{ github.event.inputs.environment }}.auto.tfvars && cat locals.tf && cat terraform.tf
+          
+  #     - name: Git Create Pull Request
+  #       id: cpr
+  #       uses: peter-evans/create-pull-request@70a41aba780001da0a30141984ae2a0c95d8704e
+  #       with:
+  #         token: ${{ secrets.GITHUB_TOKEN }} 
+  #         commit-message: ${{ github.event.inputs.subscriptionName }} - LVL3 Deployment Code - DEVBNT
+  #         committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+  #         reviewers: ccoe-azure-squad
+  #         author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
+  #         signoff: false
+  #         branch: ${{ github.event.inputs.ticketNumber }}-pipeline-az-ccoe-automation
+  #         delete-branch: false
+  #         title: 'Pull Request - ${{ github.event.inputs.subscriptionName }} - LVL3 Deployment Code - DEVBNT'
+  #         body: |
+  #           ## The following Automated Pull Request is for the deployment:
+
+  #           ### ${{ github.event.inputs.ticketNumber }} - ${{ github.event.inputs.subscriptionName }}
+  #         labels: |
+  #           automated pull request
+  #           azure subscription deployment
+  #         draft: false
+        
+  #     - name: Pull Request Outputs
+  #       if: ${{ steps.cpr.outputs.pull-request-number }}
+  #       run: |
+  #         echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
+  #         echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+
+  TerraformPlan:
+    #needs: subscription-code-creation 
+    name: 'Terraform Plan'
+    runs-on: ubuntu-latest
+    #environment: devbnt-approval
+
+    steps:
+    - name: 'Checkout Repository'
+      uses: actions/checkout@v4
+      with:
+        clean: true
+        ref: main
+
+    - name: 'Set up Terraform'
+      uses: hashicorp/setup-terraform@633666f66e0061ca3b725c73b2ec20cd13a8fdd1
+      with:
+        terraform_version: ">=1.5.2"
+      
+    - name: 'Azure login'
+      uses: azure/login@4
+      with:
+          client-id: ${{ env.ARM_CLIENT_ID }}
+          tenant-id: ${{ env.ARM_TENANT_ID }}
+          subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
+
+    - name: Show default working directory
+      run: |
+        echo ${{ GITHUB.WORKSPACE }}
+        ls -lah ${{ GITHUB.WORKSPACE }}/
+        pwd && ls -lah
+
+    - name: Terraform Formatting
+      run: |
+        cd ${{ GITHUB.WORKSPACE }}
+        terraform fmt -recursive    
+
+    - name: 'Whitelist GitHub Runner IP'
+      run: |
+            az account set --subscription "1eb32a95-0574-4a72-a4e9-a5e833b055c0"
+            agentIP=$(curl -s https://api.ipify.org/)
+            az storage account network-rule add \
+              --resource-group "rg1-tfstate-0-weu-nongxp-dev" \
+              --account-name "sa1tfstate0weungdev" \
+              --ip-address $agentIP
+            sleep 30
+
+    - name: 'Terraform Init'
+      run: |
+        cd ${{ GITHUB.WORKSPACE }}
+        terraform init
+    
+    - name: 'Terraform Plan'
+      id: tfplan-devbnt
+      run: |
+        cd ${{ GITHUB.WORKSPACE }}
+        terraform plan
+
+    - name: 'Remove GitHub Runner IP from Whitelist'
+      if: always()
+      run: |
+            az account set --subscription "1eb32a95-0574-4a72-a4e9-a5e833b055c0"
+            agentIP=$(curl -s https://api.ipify.org/)
+            az storage account network-rule remove  \
+              --resource-group "rg1-tfstate-0-weu-nongxp-dev" \
+              --account-name "sa1tfstate0weungdev" \
+              --ip-address $agentIP
+
+  TerraformApply:
+    needs: TerraformPlan 
+    name: 'Terraform Apply'
+    runs-on: ubuntu-latest
+
+    steps: 
+    - name: 'Checkout Repository'
+      uses: actions/checkout@v4
+      with:
+        clean: true
+        ref: main
+
+    - name: 'Set up Terraform'
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: ">=1.5.2"
+
+    # # Needed to overcome AzureRM regional cache replication bug -> https://github.com/hashicorp/terraform-provider-azurerm/issues/15632
+    # - name: Force the westeurope resource manager endpoint /etc/hosts
+    #   run: |
+    #     weu_rm_ip=$(nslookup westeurope.management.azure.com | grep 'Address: ' | awk '{print $2}')
+    #     echo "[INFO] Updating the ResourceManager endpoint to west europe..."
+    #     echo "$weu_rm_ip management.azure.com" | sudo tee -a /etc/hosts
+
+    - name: 'Azure login'
+      uses: azure/login@v4
+      with:
+          client-id: ${{ env.ARM_CLIENT_ID }}
+          tenant-id: ${{ env.ARM_TENANT_ID }}
+          subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
+
+    - name: Show default working directory
+      run: |
+        echo ${{ GITHUB.WORKSPACE }}
+        ls -lah ${{ GITHUB.WORKSPACE }}
+
+    - name: Terraform Formatting
+      run: |
+        cd ${{ GITHUB.WORKSPACE }}
+        terraform fmt -recursive
+
+    - name: 'Whitelist GitHub Runner IP'
+      run: |
+            az account set --subscription "1eb32a95-0574-4a72-a4e9-a5e833b055c0"
+            agentIP=$(curl -s https://api.ipify.org/)
+            az storage account network-rule add \
+              --resource-group "rg1-tfstate-0-weu-nongxp-dev" \
+              --account-name "sa1tfstate0weungdev" \
+              --ip-address $agentIP
+            sleep 30
+
+    - name: 'Terraform Init'
+      run: |
+        cd ${{ GITHUB.WORKSPACE }}
+        terraform init
+
+    - name: 'Terraform Apply'
+      id: tfapply-devbnt
+      continue-on-error: true
+      run: |
+        cd ${{ GITHUB.WORKSPACE }}
+        terraform apply -auto-approve
+
+    - name: 'Terraform Apply'
+      id: tfapply-devbnt-2nd-try
+      run: |
+        cd ${{ GITHUB.WORKSPACE }}
+        terraform apply -auto-approve >> $GITHUB_OUTPUT 2>&1 
+
+
+        - name: 'Add Comment with Terraform Apply Output'
+          if: ${{ steps.tfapply-devbnt-2nd-try.outputs.exitcode == 0 }}
+          run: |
+            echo "Terraform Apply Output:"
+            echo "${{ steps.tfapply-devbnt-2nd-try.outputs.stdout }}" | tee terraform_apply_output.txt
+            echo "::set-output name=terraform-apply-output::$(cat terraform_apply_output.txt)"
+            echo "Terraform Apply completed successfully."
+          else:
+            echo "Terraform Apply failed with exit code ${{ steps.tfapply-devbnt-2nd-try.outputs.exitcode }}."
+
+    # Known issue, check if fixed when az 2.6.0 is released.  
+    #  https://github.com/hashicorp/terraform-provider-azurerm/issues/19595
+    #  https://github.com/Azure/login/issues/372
+    #  https://github.com/Azure/azure-cli/issues/28708#issuecomment-2049014471
+    - name: 'Azure login'
+      uses: azure/login@v4
+      with:
+          client-id: ${{ env.ARM_CLIENT_ID }}
+          tenant-id: ${{ env.ARM_TENANT_ID }}
+          subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
+
+    - name: 'Remove GitHub Runner IP from Whitelist'
+      if: always()
+      run: |
+            az account set --subscription "1eb32a95-0574-4a72-a4e9-a5e833b055c0"
+            agentIP=$(curl -s https://api.ipify.org/)
+            az storage account network-rule remove  \
+              --resource-group "rg1-tfstate-0-weu-nongxp-dev" \
+              --account-name "sa1tfstate0weungdev" \
+              --ip-address $agentIP
