@@ -92,5 +92,3 @@ variable "image_version" {
   type        = string
   default     = "latest"
 }
-
-# testing
