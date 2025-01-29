@@ -18,18 +18,18 @@ resource "azurerm_virtual_machine" "windows_vm" {
   vm_size               = var.vm_size
 
   storage_os_disk {
-    name              = "${var.vm_name}_os_disk"
-    caching           = "ReadWrite"
-    create_option     = "FromImage"
-    managed_disk_type = "Standard_LRS"
+    name              = var.os_disk_name
+    caching           = var.os_disk_caching
+    create_option     = var.os_disk_create_option
+    managed_disk_type = var.os_disk_managed_disk_type
     disk_size_gb      = var.os_disk_size_gb
   }
 
   storage_image_reference {
-    publisher = "MicrosoftWindowsServer"
-    offer     = "WindowsServer"
-    sku       = "2019-Datacenter"
-    version   = "latest"
+    publisher = var.image_publisher
+    offer     = var.image_offer
+    sku       = var.image_sku
+    version   = var.image_version
   }
 
   os_profile {

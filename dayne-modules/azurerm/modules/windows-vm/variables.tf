@@ -45,3 +45,50 @@ variable "ip_configurations" {
     private_ip_address_allocation = string
   }))
 }
+
+variable "os_disk_name" {
+  description = "The name of the OS disk"
+  type        = string
+}
+
+variable "os_disk_caching" {
+  description = "The caching mode of the OS disk"
+  type        = string
+  default     = "ReadWrite"
+}
+
+variable "os_disk_create_option" {
+  description = "The create option for the OS disk"
+  type        = string
+  default     = "FromImage"
+}
+
+variable "os_disk_managed_disk_type" {
+  description = "The managed disk type of the OS disk"
+  type        = string
+  default     = "Standard_LRS"
+}
+
+variable "image_publisher" {
+  description = "The publisher of the image"
+  type        = string
+  default     = "MicrosoftWindowsServer"
+}
+
+variable "image_offer" {
+  description = "The offer of the image"
+  type        = string
+  default     = "WindowsServer"
+}
+
+variable "image_sku" {
+  description = "The SKU of the image"
+  type        = string
+  default     = "2019-Datacenter"
+}
+
+variable "image_version" {
+  description = "The version of the image"
+  type        = string
+  default     = "latest"
+}
