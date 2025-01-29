@@ -12,7 +12,7 @@ resource "azurerm_network_security_group" "nsg" {
 
   security_rule {
     name                       = "Deny-All-Inbound"
-    priority                   = 100
+    priority                   = 4000
     direction                  = "Inbound"
     access                     = "Deny"
     protocol                   = "*"
