@@ -5,3 +5,5 @@ output "source_to_destination_peering_id" {
 output "destination_to_source_peering_id" {
   value = azurerm_virtual_network_peering.destination_to_source.id
 }
+
+# testing
