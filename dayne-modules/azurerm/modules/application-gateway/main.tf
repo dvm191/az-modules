@@ -1,24 +1,30 @@
-# resource "azurerm_subnet" "frontend" {
-#   name                 = "myAGSubnet"
-#   resource_group_name  = var.resource_group_name
-#   virtual_network_name = var.vnet_name
-#   address_prefixes     = ["10.21.0.0/24"]
-# }
+resource "azurerm_subnet" "frontend" {
+  name                 = var.frontend_subnet_name
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = var.vnet_name
+  address_prefixes     = [var.frontend_subnet_prefix]
+}
 
-# resource "azurerm_subnet" "backend" {
-#   name                 = "myBackendSubnet"
-#   resource_group_name  = var.resource_group_name
-#   virtual_network_name = var.vnet_name
-#   address_prefixes     = ["10.21.1.0/24"]
-# }
+resource "azurerm_subnet" "backend" {
+  name                 = var.backend_subnet_name
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = var.vnet_name
+  address_prefixes     = [var.backend_subnet_prefix]
+}
 
-# resource "azurerm_public_ip" "pip" {
-#   name                = "myAGPublicIPAddress"
-#   resource_group_name = var.resource_group_name
-#   location            = var.location
-#   allocation_method   = "Static"
-#   sku                 = "Standard"
-# }
+resource "azurerm_subnet" "app_gateway" {
+  name                 = var.app_gateway_subnet_name
+  resource_group_name  = var.resource_group_name
+  virtual_network_name = var.vnet_name
+  address_prefixes     = [var.app_gateway_subnet_prefix]
+}
+
+resource "azurerm_public_ip" "pip" {
+  name                = var.public_ip_name
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  allocation_method   = "Static"
+}
 
 
 resource "azurerm_application_gateway" "agw" {
@@ -31,16 +37,16 @@ resource "azurerm_application_gateway" "agw" {
     capacity = 2
   }
   gateway_ip_configuration {
-    name      = "my-gateway-ip-configuration"
-    subnet_id = var.subnet_id
+    name      = "appGatewayIpConfig"
+    subnet_id = azurerm_subnet.app_gateway.id
   }
   frontend_port {
     name = "frontend-port"
     port = 80
   }
   frontend_ip_configuration {
-    name                 = "frontend-ip-configuration"
-    public_ip_address_id = var.public_ip_address_id
+    name                 = "frontendConfig"
+    public_ip_address_id = azurerm_public_ip.pip.id
   }
   backend_address_pool {
     name = "backend-address-pool"
@@ -50,7 +56,7 @@ resource "azurerm_application_gateway" "agw" {
     cookie_based_affinity = "Disabled"
     port                  = 80
     protocol              = "Http"
-    request_timeout       = 20
+    request_timeout       = 60
   }
   http_listener {
     name                           = "http-listener"
