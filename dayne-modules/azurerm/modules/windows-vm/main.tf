@@ -15,31 +15,32 @@ resource "azurerm_virtual_machine" "windows_vm" {
   location              = var.location
   resource_group_name   = var.resource_group_name
   network_interface_ids = [azurerm_network_interface.nic.id]
-  vm_size               = var.vm_size
+  vm_size               = try(var.vm_size, "Standard_DS2_v2")
 
   storage_os_disk {
-    name              = var.os_disk_name
-    caching           = var.os_disk_caching
-    create_option     = var.os_disk_create_option
-    managed_disk_type = var.os_disk_managed_disk_type
-    disk_size_gb      = var.os_disk_size_gb
+    name              = try(var.os_disk_name, "${var.vm_name}_os_disk")
+    caching           = try(var.os_disk_caching, "ReadWrite") 
+    create_option     = try(var.os_disk_create_option, "FromImage") 
+    managed_disk_type = try(var.os_disk_managed_disk_type, "Standard_LRS") 
+    disk_size_gb      = try(var.os_disk_size_gb, 128)
+
   }
 
   storage_image_reference {
-    publisher = var.image_publisher
-    offer     = var.image_offer
-    sku       = var.image_sku
-    version   = var.image_version
+    publisher = try(var.image_publisher, "MicrosoftWindowsServer")
+    offer     = try(var.image_offer, "WindowsServer")
+    sku       = try(var.image_sku, "2019-Datacenter")
+    version   = try(var.image_version, "latest")
   }
 
   os_profile {
-    computer_name  = var.vm_name
+    computer_name  = try(var.vm_name, "windowsvm")
     admin_username = var.admin_username
     admin_password = var.admin_password
   }
 
   os_profile_windows_config {
-    provision_vm_agent        = true
+    provision_vm_agent        = try(var.provision_vm_agent, true)
     # enable_automatic_updates  = true
   }
 }
