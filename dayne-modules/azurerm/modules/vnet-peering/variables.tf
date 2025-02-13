@@ -17,3 +17,21 @@ variable "peering_name" {
   description = "The name of the VNet peering"
   type        = string
 }
+
+variable "allow_forwarded_traffic" {
+  description = "Allow forwarded traffic"
+  type        = bool
+  default     = true
+}
+
+variable "allow_gateway_transit" {
+  description = "Allow gateway transit"
+  type        = bool
+  default     = false
+}
+
+variable "use_remote_gateways" {
+  description = "Use remote gateways"
+  type        = bool
+  default     = false
+}

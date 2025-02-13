@@ -32,3 +32,19 @@ variable "bastion_name" {
   description = "The name of the Bastion host"
   type        = string
 }
+
+variable "bastion_subnet_name" {
+  description = "The name of the Bastion host"
+  type        = string
+  default     = "AzureBastionSubnet"
+}
+
+variable "allocation_method" {
+  description = "The allocation method of the public IP address"
+  type        = string
+}
+
+variable "sku" {
+  description = "The SKU of the Bastion host"
+  type        = string
+}
