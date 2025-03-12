@@ -22,14 +22,13 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - name: Echo
-        run: |
-          $output=${{inputs.echo}}      
+        run: | 
           echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
           echo "## Test Output" >> $GITHUB_OUTPUT
           echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
           echo "" >> $GITHUB_OUTPUT
           echo '```Echo' >> $GITHUB_OUTPUT
-          echo "$output" >> $GITHUB_OUTPUT
+          echo "${{inputs.echo}}" >> $GITHUB_OUTPUT
           echo '```' >> $GITHUB_OUTPUT
           echo "</details>" >> $GITHUB_OUTPUT
           echo "${delimiter}" >> $GITHUB_OUTPUT
