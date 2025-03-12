@@ -12,7 +12,7 @@ permissions:
 
 jobs:
   sample-reusable-workflow:
-    uses: dvm191/az-modules/.github/workflows/sample-reusable-workflow.yml@main
+    uses: dvm191/az-modules/.github/workflows/sample-reusable-workflow.yaml@main
     with:
       echo: Hello
     secrets: inherit
