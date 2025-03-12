@@ -1,4 +1,4 @@
-name: Reusable Workflow - Generic
+name: Reusable Workflow - Echo String
 
 on:
   workflow_call:
