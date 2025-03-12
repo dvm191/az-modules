@@ -49,6 +49,7 @@ env:
   ARM_CLIENT_ID: ${{ inputs.spnClientId }}
   ARM_SUBSCRIPTION_ID: ${{ inputs.subscriptionId }}
   ARM_TENANT_ID: ${{ inputs.tenantid }}
+  ARM_CLIENT_SECRET: ${{ secrets.cred }}
   #ARM_USE_OIDC: "true"  
           
 defaults:
@@ -56,20 +57,6 @@ defaults:
     shell: bash
 
 jobs:
-  Validate:
-    name: 'Validate Inputs'
-    runs-on: "ubuntu-latest" 
-    steps:
-      - name: 'validate environment input regex' # note: the exit function on this bash script doesn't halt the step
-        id: validate_env_type
-        run: |
-          if [[ ${{ inputs.environment }} != *"devbnt"* && ${{ inputs.environment }} != *"bnt"* ]]; then
-            echo "Error: bnt or devbnt values are only accepted!"
-            exit 1
-          else
-            echo "target_env=${{ inputs.environment }}" >> $GITHUB_OUTPUT
-          fi
-
   TerraformPlan:
       name: 'Terraform Plan'
       runs-on: "ubuntu-latest"
@@ -81,8 +68,8 @@ jobs:
         - name: 'Checkout Deployment Repo'
           uses: actions/checkout@v4
           with:
-            token: ${{ secrets.CREDENTIALS }}  
-            repository: biontech-qm/${{ inputs.deploymentRepo }}
+            token: ${{ secrets.cred }}  
+            repository: dvm191/${{ inputs.deploymentRepo }}
             ref: ${{ inputs.deploymentRepoBranch }}
             path: ${{ inputs.deploymentRepo }}
             fetch-depth: 0
@@ -100,11 +87,9 @@ jobs:
           run: pwd && ls -lah && echo ${{ GITHUB.WORKSPACE }}
 
         - name: 'Azure login'
-          uses: azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2
+          uses: azure/login@v2
           with:
-              client-id: ${{ env.ARM_CLIENT_ID }}
-              tenant-id: ${{ env.ARM_TENANT_ID }}
-              subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
+            creds: ${{ secrets.creds }}
 
         - name: 'Set Deployment Subscription Context'
           run: | 
@@ -119,7 +104,7 @@ jobs:
               git config --global url."https://github.com/".insteadOf git@github.com:
               git config --global url."https://".insteadOf git://
               git config --global credential.helper 'store --file ~/.git-credentials'
-              echo "https://mark-railton:${{ secrets.CREDENTIALS }}@github.com" > ~/.git-credentials
+              echo "https://dvm191:${{ secrets.creds }}@github.com" > ~/.git-credentials
 
         - name: 'Terraform Init'
           run: |
@@ -199,7 +184,6 @@ jobs:
     needs: TerraformPlan 
     name: 'Terraform Apply'
     runs-on: "ubuntu-latest"
-    environment: devbnt-approval
     steps:
       - uses: actions/download-artifact@v4
 
@@ -207,11 +191,9 @@ jobs:
         run: pwd && ls -lah && echo ${{ GITHUB.WORKSPACE }}
 
       - name: 'Azure login'
-        uses: azure/login@92a5484dfaf04ca78a94597f4f19fea633851fa2
+        uses: azure/login@v2
         with:
-            client-id: ${{ env.ARM_CLIENT_ID }}
-            tenant-id: ${{ env.ARM_TENANT_ID }}
-            subscription-id: ${{ env.ARM_SUBSCRIPTION_ID }}
+            creds: ${{ secrets.creds }}
 
       - name: 'Set Deployment Subscription Context'
         run: | 
