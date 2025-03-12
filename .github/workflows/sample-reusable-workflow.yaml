@@ -1,0 +1,25 @@
+name: Reusable Workflow - Generic
+
+on:
+  workflow_call:
+    inputs:        
+      echo:
+        type: string
+        description: 'echo out a string'
+        required: true
+
+permissions:
+    id-token: write
+    contents: read
+          
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  echo-input:
+    name: 'Echo Input'
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Echo
+        run: echo ${{inputs.echo}}
