@@ -23,12 +23,4 @@ jobs:
     steps:
       - name: Echo
         run: | 
-          echo "summary<<${delimiter}" >> $GITHUB_OUTPUT
-          echo "## Test Output" >> $GITHUB_OUTPUT
-          echo "<details><summary>Click to expand</summary>" >> $GITHUB_OUTPUT
-          echo "" >> $GITHUB_OUTPUT
-          echo '```Echo' >> $GITHUB_OUTPUT
-          echo "${{inputs.echo}}" >> $GITHUB_OUTPUT
-          echo '```' >> $GITHUB_OUTPUT
-          echo "</details>" >> $GITHUB_OUTPUT
-          echo "${delimiter}" >> $GITHUB_OUTPUT
+          echo ${{inputs.echo}} - Step completed successfully! >> $GITHUB_STEP_SUMMARY
